@@ -14,7 +14,7 @@ int yellow = 26;
 int green = 28;
 int buzzer = 30;
 
-const char* list[] = { "red", "yellow", "green"};
+const char* list[] = { "red", "green", "yellow"};
 int choice = 0;
 
 void setup() 
@@ -25,20 +25,16 @@ void setup()
   pinMode(button, INPUT_PULLUP);
   pinMode(buzzer, OUTPUT);
 
-  cli();//stop interrupts
+  cli();
   //set timer1 interrupt at 1Hz
-  TCCR4A = 0;// set entire TCCR4A register to 0
-  TCCR4B = 0;// same for TCCR1B
-  TCNT4  = 0;//initialize counter value to 0
-  // set compare match register for 1hz increments
-  OCR4A = 15624;// = (16*10^6) / (1*1024) - 1 (must be <65536)
-  // turn on CTC mode
+  TCCR4A = 0;
+  TCCR4B = 0;
+  TCNT4  = 0;
+  OCR4A = 15624;
   TCCR4B |= (1 << WGM12);
-  // Set CS12 and CS10 bits for 1024 prescaler
   TCCR4B |= (1 << CS12) | (1 << CS10);  
-  // enable timer compare interrupt
   TIMSK4 |= (1 << OCIE1A);
-  sei();//allow interrupts
+  sei();
 
   byte numDigits = 4;
   byte digitPins[] = {2, 3, 4, 5};
@@ -46,7 +42,7 @@ void setup()
   bool resistorsOnSegments = false; // 'false' means resistors are on digit pins
   byte hardwareConfig = COMMON_ANODE; // See README.md for options
   bool updateWithDelays = false; // Default 'false' is Recommended
-  bool leadingZeros = false; // Use 'true' if you'd like to keep the leading zeros
+  bool leadingZeros = true; // Use 'true' if you'd like to keep the leading zeros
   bool disableDecPoint = true; // Use 'true' if your decimal point doesn't exist or isn't connected
 
   sevseg.begin(hardwareConfig, numDigits, digitPins, segmentPins, resistorsOnSegments, updateWithDelays, leadingZeros, disableDecPoint);
@@ -57,8 +53,10 @@ void setup()
 //timer1 interrupt 1Hz
 ISR(TIMER4_COMPA_vect)
 {
-  //digitalWrite(list[choice],LOW);
-  choice = (choice + 1) % 3;
+  if((millis() - startTime) >= limit)
+  {
+    choice = (choice + 1) % 3;
+  }
 }
 
 void loop() 
@@ -88,29 +86,38 @@ void loop()
   else
   {
     sei();
-    limit = 20000;
     startTime = millis();
-    remainder = (limit - timer) / 1000;
-    if(list[choice] =="red")
+    while(list[choice] =="red")
     {
+      limit = 20000;
+      remainder = (limit - (millis() - startTime)) / 1000;
       digitalWrite(red, HIGH);
       digitalWrite(yellow, LOW);
       digitalWrite(green, LOW);
+      sevseg.setNumber(remainder, -1, true);
+      sevseg.refreshDisplay();
     }
-    else if(list[choice] == "yellow")
+    startTime = millis();
+    while(list[choice] == "green")
     {
-      digitalWrite(red, LOW);
-      digitalWrite(yellow, HIGH);
-      digitalWrite(green, LOW);
-    }
-    else
-    {
+      limit = 20000;
+      remainder = (limit - (millis() - startTime)) / 1000;
       digitalWrite(red, LOW);
       digitalWrite(yellow, LOW);
       digitalWrite(green,HIGH);
+      sevseg.setNumber(remainder, -1, true);
+      sevseg.refreshDisplay();
     }
-    Serial.println(list[choice]);
-    sevseg.setNumber(remainder, -1, true);
-    sevseg.refreshDisplay();
+    startTime = millis();
+    while(list[choice] == "yellow")
+    {
+      limit = 6000;
+      remainder = (limit - (millis() - startTime)) / 1000;
+      digitalWrite(red, LOW);
+      digitalWrite(yellow, HIGH);
+      digitalWrite(green, LOW);
+      sevseg.setNumber(remainder, -1, true);
+      sevseg.refreshDisplay();
+    }
   }
 }
