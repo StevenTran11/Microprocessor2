@@ -37,6 +37,6 @@ void loop()
   {
     start = true;
   }
-  //sevseg.setNumber(timer % 100, -1, true); // Displays '3.141'
+  //sevseg.setNumber(timer % 100, -1, true);
   //sevseg.refreshDisplay();
 }
