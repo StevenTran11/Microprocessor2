@@ -14,7 +14,8 @@ int yellow = 26;
 int green = 28;
 int buzzer = 30;
 
-string list = {"red", "yellow", "green"};
+const char* list[] = { "red", "yellow", "green"};
+int choice = 0;
 
 void setup() 
 {
@@ -50,12 +51,14 @@ void setup()
 
   sevseg.begin(hardwareConfig, numDigits, digitPins, segmentPins, resistorsOnSegments, updateWithDelays, leadingZeros, disableDecPoint);
   sevseg.setBrightness(90);
+  Serial.begin(9600);
 }
 
 //timer1 interrupt 1Hz
 ISR(TIMER4_COMPA_vect)
 {
-
+  //digitalWrite(list[choice],LOW);
+  choice = (choice + 1) % 3;
 }
 
 void loop() 
@@ -88,6 +91,25 @@ void loop()
     limit = 20000;
     startTime = millis();
     remainder = (limit - timer) / 1000;
+    if(list[choice] =="red")
+    {
+      digitalWrite(red, HIGH);
+      digitalWrite(yellow, LOW);
+      digitalWrite(green, LOW);
+    }
+    else if(list[choice] == "yellow")
+    {
+      digitalWrite(red, LOW);
+      digitalWrite(yellow, HIGH);
+      digitalWrite(green, LOW);
+    }
+    else
+    {
+      digitalWrite(red, LOW);
+      digitalWrite(yellow, LOW);
+      digitalWrite(green,HIGH);
+    }
+    Serial.println(list[choice]);
     sevseg.setNumber(remainder, -1, true);
     sevseg.refreshDisplay();
   }
