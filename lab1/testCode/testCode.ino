@@ -14,7 +14,7 @@ int yellow = 26;
 int green = 28;
 int buzzer = 30;
 
-const char* list[] = { "red", "green", "yellow"};
+const char* list[] = {"red", "green", "yellow"};
 int choice = 0;
 
 void setup() 
@@ -53,7 +53,7 @@ void setup()
 //timer1 interrupt 1Hz
 ISR(TIMER4_COMPA_vect)
 {
-  if((millis() - startTime) >= limit)
+  if((millis() - startTime) > limit)
   {
     choice = (choice + 1) % 3;
   }
@@ -67,7 +67,6 @@ void loop()
   }
   if(press == false) //red blink
   {
-    cli();
     limit = 1000;
     if(start == true)
     {
@@ -85,40 +84,54 @@ void loop()
   }
   else
   {
-    sei();
-    startTime = millis();
-    while(list[choice] =="red")
+    while(true)
     {
-      limit = 20000;
-      remainder = (limit - (millis() - startTime)) / 1000;
+      sei();
+      digitalWrite(yellow, LOW);
+      digitalWrite(green, LOW);
       digitalWrite(red, HIGH);
-      digitalWrite(yellow, LOW);
-      digitalWrite(green, LOW);
-      sevseg.setNumber(remainder, -1, true);
-      sevseg.refreshDisplay();
-    }
-    startTime = millis();
-    while(list[choice] == "green")
-    {
-      limit = 20000;
-      remainder = (limit - (millis() - startTime)) / 1000;
+      startTime = millis();
+      while(list[choice] =="red")
+      {
+        limit = 20000;
+        remainder = (limit - (millis() - startTime)) / 1000;
+        if(remainder <= 65535  && remainder >= 0)
+        {
+          //Serial.println(remainder);
+          sevseg.setNumber(remainder, -1, true);
+        }
+        sevseg.refreshDisplay();
+      }
       digitalWrite(red, LOW);
-      digitalWrite(yellow, LOW);
       digitalWrite(green,HIGH);
-      sevseg.setNumber(remainder, -1, true);
-      sevseg.refreshDisplay();
-    }
-    Serial.println(list[choice]);
-    startTime = millis();
-    while(list[choice] == "yellow")
-    {
-      limit = 6000;
-      remainder = (limit - (millis() - startTime)) / 1000;
+      digitalWrite(yellow, LOW);
+      startTime = millis();
+      while(list[choice] == "green")
+      {
+        limit = 20000;
+        remainder = (limit - (millis() - startTime)) / 1000;
+        if(remainder <= 65535 && remainder >= 0)
+        {
+          //Serial.println(remainder);
+          sevseg.setNumber(remainder, -1, true);
+        }
+        sevseg.refreshDisplay();
+      }
       digitalWrite(red, LOW);
-      digitalWrite(yellow, HIGH);
       digitalWrite(green, LOW);
-      sevseg.setNumber(remainder, -1, true);
-      sevseg.refreshDisplay();
+      digitalWrite(yellow, HIGH);
+      startTime = millis();
+      while(list[choice] == "yellow")
+      {
+        limit = 6000;
+        remainder = (limit - (millis() - startTime)) / 1000;
+        if(remainder <= 65535 && remainder >= 0)
+        {
+          //Serial.println(remainder);
+          sevseg.setNumber(remainder, -1, true);
+        }
+        sevseg.refreshDisplay();
+      }
     }
   }
 }
