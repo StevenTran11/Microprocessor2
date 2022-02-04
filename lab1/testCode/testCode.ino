@@ -1,31 +1,53 @@
 #include "SevSeg.h"
 
 SevSeg sevseg;
-bool start = true;
 volatile unsigned long startTime;
 unsigned long currentTime = 0;
 int timer;
 volatile int limit;
-int remainder;
+volatile int remainder;
 volatile bool press = false;
 
+// Ports
 int button = 22;
 volatile int red = 24;
 int yellow = 26;
 int green = 28;
 int buzzer = 30;
+int CA_1 = 7;
+int CA_2 = 8;
+int CA_3 = 9;
+int CA_4 = 10;
+const int STcp = 12;    //Pin connected to ST_CP of 74HC595
+const int SHcp = 11;    //Pin connected to SH_CP of 74HC595
+const int DS = 13;      //Pin connected to DS of 74HC595
+
 
 const char* list[] = {"red", "green", "yellow"};
 volatile int choice = 0;
 
+byte datArray[10] {B11111100, B01100000, B11011010, B11110010, B01100110, B10110110, B10111110, B11100000, B11111110, B11110110};
+
 // Called on boot
 void setup() 
 {
+    // Configure ports
     pinMode(red, OUTPUT);
     pinMode(yellow, OUTPUT);
     pinMode(green, OUTPUT);
     pinMode(button, INPUT_PULLUP);
     pinMode(buzzer, OUTPUT);
+    pinMode(STcp, OUTPUT);
+    pinMode(SHcp, OUTPUT);
+    pinMode(DS, OUTPUT);
+    pinMode(CA_1, OUTPUT);
+    pinMode(CA_2, OUTPUT);
+    pinMode(CA_3, OUTPUT);
+    pinMode(CA_4, OUTPUT);
+    digitalWrite(CA_1, HIGH);
+    digitalWrite(CA_2, HIGH);
+    digitalWrite(CA_3, HIGH);
+    digitalWrite(CA_4, HIGH);
 
     // Clear global interrupt flag
     cli();
@@ -66,26 +88,39 @@ void setup()
     Serial.begin(9600);
 }
 
-// Timer 3 ISR
-ISR(TIMER3_COMPA_vect)
+// Helper fucntion to shift a number to the 7 segment display
+void segwrite(int number)
 {
-    digitalWrite(red, !digitalRead(red));
+    digitalWrite(STcp, LOW);
+    shiftOut(DS, SHcp, LSBFIRST, datArray[number]);
+    digitalWrite(STcp, HIGH);
 }
 
-// Timer 4 ISR
-ISR(TIMER4_COMPA_vect)
+// Function to write a one digit number to the 7 segment display
+void onedigit(int which, int value)
 {
-    if((millis() - startTime) > limit)
-    {
-      choice = (choice + 1) % 3;
-    }
+    digitalWrite(which, LOW);
+    segwrite(value);
+    delay(500);
+    digitalWrite(which,HIGH);
+}
+
+// Function to write a two digit number to the 7 segment display
+void twodigit(int value)
+{
+    int digit0 = value / 10;
+    int digit1 = value - (digit0 * 10);
+    
+    onedigit (CA_1,digit0);
+    onedigit (CA_2,digit1);
+ 
 }
 
 // Main code loop
 void loop() 
 {
     // Check for button press
-    if (digitalRead(button) == LOW)
+    if (digitalRead(button) == HIGH)
     {
         press = true;
     }
@@ -95,7 +130,6 @@ void loop()
         // Disable timer 3 interrupts, they are not needed anymore
         cli();
         TIMSK3 = 0x00;
-        Serial.println("fiona");
         sei();
 
         while(true)
@@ -111,56 +145,86 @@ void loop()
                 remainder = (limit - (millis() - startTime)) / 1000;
                 if(remainder <= 65535  && remainder >= 0)
                 {
-                  Serial.println(remainder);
                   sevseg.setNumber(remainder, -1, true);
                 }
+
                 if(remainder < 3)
                 {
                   digitalWrite(buzzer, HIGH);
                 }
+
                 sevseg.refreshDisplay();
             }
+
             digitalWrite(buzzer, LOW);
             digitalWrite(red, LOW);
             digitalWrite(green,HIGH);
             digitalWrite(yellow, LOW);
             startTime = millis();
+
             while(list[choice] == "green")
             {
                 limit = 20000;
                 remainder = (limit - (millis() - startTime)) / 1000;
                 if(remainder <= 65535 && remainder >= 0)
                 {
-                    Serial.println(remainder);
                     sevseg.setNumber(remainder, -1, true);
                 }
+
                 if(remainder < 3)
                 {
                     digitalWrite(buzzer, HIGH);
                 }
+
                 sevseg.refreshDisplay();
             }
+
             digitalWrite(buzzer, LOW);
             digitalWrite(red, LOW);
             digitalWrite(green, LOW);
             digitalWrite(yellow, HIGH);
             startTime = millis();
+
             while(list[choice] == "yellow")
             {
                 limit = 6000;
                 remainder = (limit - (millis() - startTime)) / 1000;
                 if(remainder <= 65535 && remainder >= 0)
                 {
-                  Serial.println(remainder);
                   sevseg.setNumber(remainder, -1, true);
                 }
+
                 if(remainder < 3)
                 {
                   digitalWrite(buzzer, HIGH);
                 }
+
                 sevseg.refreshDisplay();
             }
+
             digitalWrite(buzzer, LOW);
         }
     }
+}
+
+// ISRs
+
+// Timer 3 ISR
+ISR(TIMER3_COMPA_vect)
+{
+    digitalWrite(red, !digitalRead(red));
+}
+
+// Timer 4 ISR
+ISR(TIMER4_COMPA_vect)
+{
+    if((millis() - startTime) > limit)
+    {
+      choice = (choice + 1) % 3;
+    }
+
+    twodigit(remainder);
+
+    // Generaly don't want prints in ISRs
+    Serial.println(remainder);
 }
