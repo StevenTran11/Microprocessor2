@@ -14,13 +14,13 @@ volatile int red = 24;
 int yellow = 26;
 int green = 28;
 int buzzer = 30;
-int CA_1 = 7;
-int CA_2 = 8;
-int CA_3 = 9;
-int CA_4 = 10;
-const int STcp = 12;    //Pin connected to ST_CP of 74HC595
-const int SHcp = 11;    //Pin connected to SH_CP of 74HC595
-const int DS = 13;      //Pin connected to DS of 74HC595
+const int CA_1 = 7;
+const int CA_2 = 8;
+const int CA_3 = 9;
+const int CA_4 = 10;
+const int SRCLK = 11;   // Pin connected to SRCLK/ST_CP of 74HC595. Shift register clock
+const int RCLK = 12;    // Pin connected to RCLK/SH_CP of 74HC595. Storage register clock
+const int SER = 13;     // Pin connected to SER/DS of 74HC595. Data line
 
 
 const char* list[] = {"red", "green", "yellow"};
@@ -53,9 +53,9 @@ void setup()
     pinMode(green, OUTPUT);
     pinMode(button, INPUT_PULLUP);
     pinMode(buzzer, OUTPUT);
-    pinMode(STcp, OUTPUT);
-    pinMode(SHcp, OUTPUT);
-    pinMode(DS, OUTPUT);
+    pinMode(SRCLK, OUTPUT);
+    pinMode(RCLK, OUTPUT);
+    pinMode(SER, OUTPUT);
     pinMode(CA_1, OUTPUT);
     pinMode(CA_2, OUTPUT);
     pinMode(CA_3, OUTPUT);
@@ -99,17 +99,17 @@ void setup()
     bool leadingZeros = false; // Use 'true' if you'd like to keep the leading zeros
     bool disableDecPoint = true; // Use 'true' if your decimal point doesn't exist or isn't connected
 
-    sevseg.begin(hardwareConfig, numDigits, digitPins, segmentPins, resistorsOnSegments, updateWithDelays, leadingZeros, disableDecPoint);
-    sevseg.setBrightness(90);
+    //sevseg.begin(hardwareConfig, numDigits, digitPins, segmentPins, resistorsOnSegments, updateWithDelays, leadingZeros, disableDecPoint);
+    //sevseg.setBrightness(90);
     Serial.begin(9600);
 }
 
 // Helper fucntion to shift a number to the 7 segment display
 void segwrite(int number)
 {
-    digitalWrite(STcp, LOW);
-    shiftOut(DS, SHcp, LSBFIRST, datArray[number]);
-    digitalWrite(STcp, HIGH);
+    digitalWrite(RCLK, LOW);
+    shiftOut(SER, SRCLK, LSBFIRST, datArray[number]);
+    digitalWrite(RCLK, HIGH);
 }
 
 // Function to write a one digit number to the 7 segment display
@@ -117,8 +117,8 @@ void onedigit(int which, int value)
 {
     digitalWrite(which, LOW);
     segwrite(value);
-    delay(500);
-    digitalWrite(which,HIGH);
+    delay(50);
+    digitalWrite(which, HIGH);
 }
 
 // Function to write a two digit number to the 7 segment display
@@ -161,7 +161,7 @@ void loop()
                 remainder = (limit - (millis() - startTime)) / 1000;
                 if(remainder <= 65535  && remainder >= 0)
                 {
-                  sevseg.setNumber(remainder, -1, true);
+                  //sevseg.setNumber(remainder, -1, true);
                 }
 
                 if(remainder < 3)
@@ -169,7 +169,7 @@ void loop()
                   digitalWrite(buzzer, HIGH);
                 }
 
-                sevseg.refreshDisplay();
+                //sevseg.refreshDisplay();
             }
 
             digitalWrite(buzzer, LOW);
@@ -184,7 +184,7 @@ void loop()
                 remainder = (limit - (millis() - startTime)) / 1000;
                 if(remainder <= 65535 && remainder >= 0)
                 {
-                    sevseg.setNumber(remainder, -1, true);
+                    //sevseg.setNumber(remainder, -1, true);
                 }
 
                 if(remainder < 3)
@@ -192,7 +192,7 @@ void loop()
                     digitalWrite(buzzer, HIGH);
                 }
 
-                sevseg.refreshDisplay();
+                //sevseg.refreshDisplay();
             }
 
             digitalWrite(buzzer, LOW);
@@ -207,7 +207,7 @@ void loop()
                 remainder = (limit - (millis() - startTime)) / 1000;
                 if(remainder <= 65535 && remainder >= 0)
                 {
-                  sevseg.setNumber(remainder, -1, true);
+                  //sevseg.setNumber(remainder, -1, true);
                 }
 
                 if(remainder < 3)
@@ -215,7 +215,7 @@ void loop()
                   digitalWrite(buzzer, HIGH);
                 }
 
-                sevseg.refreshDisplay();
+                //sevseg.refreshDisplay();
             }
 
             digitalWrite(buzzer, LOW);
@@ -229,6 +229,8 @@ void loop()
 ISR(TIMER3_COMPA_vect)
 {
     digitalWrite(red, !digitalRead(red));
+
+    onedigit(CA_4, 2);
 }
 
 // Timer 4 ISR
@@ -239,7 +241,7 @@ ISR(TIMER4_COMPA_vect)
       choice = (choice + 1) % 3;
     }
 
-    twodigit(remainder);
+    //twodigit(remainder);
 
     // Generaly don't want prints in ISRs
     Serial.println(remainder);
