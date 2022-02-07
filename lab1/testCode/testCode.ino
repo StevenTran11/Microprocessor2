@@ -1,6 +1,5 @@
-#include "SevSeg.h"
+// Lab 1 Assignment
 
-SevSeg sevseg;
 volatile unsigned long startTime;
 unsigned long currentTime = 0;
 int timer;
@@ -44,6 +43,55 @@ volatile int choice = 0;
 //15:1 0 0 0 1 1 1 0
 byte datArray[10] {B11111100, B01100000, B11011010, B11110010, B01100110, B10110110, B10111110, B11100000, B11111110, B11110110};
 
+void configTimer2()
+{
+    // 16 MHz clock is used
+    TCCR2A  = 0x00;
+    TCCR2B  = 0x00;
+    TCNT2   = 0x00;
+
+    // Set clock prescaler to clk/1024
+    // Set normal mode (interrupt at MAX)
+    // Frequency = 15625 / 255 = 61.27 Hz
+    TCCR2B  |= (1 << CS22) | (1 << CS20);
+    // Enable Overflow Interrupt
+    TIMSK2  = (1 << TOIE2);
+}   
+
+void configTimer3()
+{
+    // 16 MHz clock is used
+    TCCR3A = 0x00;
+    TCCR3B = 0x00;
+    TCNT3  = 0x00;
+    
+    // Set clock prescaler to clk/1024
+    TCCR3B |= (1 << CS32) | (1 << CS30);
+    // Set CTC mode 
+    TCCR3B |= (1 << WGM32);
+    // Set counter to 1Hz tick (16MHz / 1024 = 15625)
+    OCR3A = 15625;
+    // Enable Output Compare A Match Interrupt
+    TIMSK3 = (1 << OCIE3A);
+}
+
+void configTimer4()
+{
+    // 16 MHz clock is used
+    TCCR4A = 0x00;
+    TCCR4B = 0x00;
+    TCNT4  = 0x00;
+    
+    // Set clock prescaler to clk/1024
+    TCCR4B |= (1 << CS42) | (1 << CS40);
+    // Set CTC mode 
+    TCCR4B |= (1 << WGM42);
+    // Set counter to 1Hz tick (16MHz / 1024 = 15625)
+    OCR4A = 15625;
+    // Enable Output Compare A Match Interrupt
+    TIMSK4 = (1 << OCIE4A);
+}
+
 // Called on boot
 void setup() 
 {
@@ -68,39 +116,19 @@ void setup()
     // Clear global interrupt flag
     cli();
 
+    configTimer2();
+
     // Set Timer 3 interrupt at 1 Hz
     // Used for red LED blink after boot before button has been pressed
-    TCCR3A = 0;
-    TCCR3B = 0;
-    TCNT3  = 0;
-    OCR3A = 15624;
-    TCCR3B |= (1 << WGM32);
-    TCCR3B |= (1 << CS32) | (1 << CS30);  
-    TIMSK3 = (1 << OCIE3A);
+    configTimer3();
 
     // Set Timer 4 interrupt at 1Hz
-    TCCR4A = 0;
-    TCCR4B = 0;
-    //TCNT4  = 0;
-    OCR4A = 15624;
-    TCCR4B |= (1 << WGM42);
-    TCCR4B |= (1 << CS42) | (1 << CS40);  
-    TIMSK4 |= (1 << OCIE4A);
+    configTimer4();
 
     // Set global interrupt
     sei();
 
-    byte numDigits = 4;
-    byte digitPins[] = {2, 3, 4, 5};
-    byte segmentPins[] = {6, 7, 8, 9, 10, 11, 12, 13};
-    bool resistorsOnSegments = false; // 'false' means resistors are on digit pins
-    byte hardwareConfig = COMMON_CATHODE; // See README.md for options
-    bool updateWithDelays = false; // Default 'false' is Recommended
-    bool leadingZeros = false; // Use 'true' if you'd like to keep the leading zeros
-    bool disableDecPoint = true; // Use 'true' if your decimal point doesn't exist or isn't connected
-
-    //sevseg.begin(hardwareConfig, numDigits, digitPins, segmentPins, resistorsOnSegments, updateWithDelays, leadingZeros, disableDecPoint);
-    //sevseg.setBrightness(90);
+    // Enable serial port
     Serial.begin(9600);
 }
 
@@ -115,10 +143,10 @@ void segwrite(int number)
 // Function to write a one digit number to the 7 segment display
 void onedigit(int which, int value)
 {
-    digitalWrite(which, HIGH);
+    digitalWrite(which, LOW);
     segwrite(value);
     //delay(50);
-    digitalWrite(which, LOW);
+    digitalWrite(which, HIGH);
 }
 
 // Function to write a two digit number to the 7 segment display
@@ -224,6 +252,15 @@ void loop()
 }
 
 // ISRs
+
+// Timer 2 ISR
+ISR(TIMER2_OVF_vect)
+{
+    onedigit(CA_1, 1);
+    onedigit(CA_2, 2);
+    onedigit(CA_3, 3);
+    onedigit(CA_4, 4);
+}
 
 // Timer 3 ISR
 ISR(TIMER3_COMPA_vect)
