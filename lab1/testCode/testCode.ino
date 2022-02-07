@@ -115,10 +115,10 @@ void segwrite(int number)
 // Function to write a one digit number to the 7 segment display
 void onedigit(int which, int value)
 {
-    digitalWrite(which, LOW);
-    segwrite(value);
-    delay(50);
     digitalWrite(which, HIGH);
+    segwrite(value);
+    //delay(50);
+    digitalWrite(which, LOW);
 }
 
 // Function to write a two digit number to the 7 segment display
@@ -127,8 +127,8 @@ void twodigit(int value)
     int digit0 = value / 10;
     int digit1 = value - (digit0 * 10);
     
-    onedigit (CA_1,digit0);
-    onedigit (CA_2,digit1);
+    onedigit (CA_4,digit0);
+    onedigit (CA_3,digit1);
  
 }
 
@@ -229,8 +229,6 @@ void loop()
 ISR(TIMER3_COMPA_vect)
 {
     digitalWrite(red, !digitalRead(red));
-
-    onedigit(CA_4, 2);
 }
 
 // Timer 4 ISR
@@ -242,6 +240,7 @@ ISR(TIMER4_COMPA_vect)
     }
 
     //twodigit(remainder);
+    onedigit(CA_4, remainder % 10);
 
     // Generaly don't want prints in ISRs
     Serial.println(remainder);
