@@ -170,8 +170,8 @@ void onedigit(int which, int value){
 
 void twodigit(int value)
 {
-  int digit0=value/10;
-  int digit1=value-(digit0 * 10);
+  int digit0=value/16;
+  int digit1=value-(digit0 * 16);
   
   onedigit(CA_1,digit0);
   onedigit(CA_2,digit1);
