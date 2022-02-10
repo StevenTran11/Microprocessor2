@@ -56,17 +56,21 @@ void loop()
       delay(500);
     }
   }*/
-  timer.update(); 
-  if (Serial.available()) { 
+  timer.update();
+  if (Serial.available())
+  { 
     timer.stop(timer_event); 
     screenOff(); 
-    String s = Serial.readString(); 
+    String s = "9999";
     number = (long)s.toInt(); 
-    if (number > 9999) { 
+    if (number > 9999) 
+    { 
       Serial.println("Enter a number between 0 and 9999");
-      } else {
+    }
+    else 
+    {
       separate(number);
-      timer_event = timer.every(1, Display); 
+      timer_event = timer.every(1, Display);
     }
   }
 }
