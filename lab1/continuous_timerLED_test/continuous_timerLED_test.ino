@@ -20,43 +20,39 @@ int second_digit = 0;
 //display 0,1,2,3,4,5,6,7,8,9
 byte datArray[16] {B11111100, B01100000, B11011010, B11110010, B01100110, B10110110, B10111110, B11100000, B11111110, B11110110, B11101110, B00111110, B10011100, B01111010, B10011110, B10001110};
 
-int startTime;
-int limit;
-int remainder;
-int choice;
+int limit = 0;
 
 void configTimer3()
 {
-    // 16 MHz clock is used
-    TCCR3A = 0x00;
-    TCCR3B = 0x00;
-    TCNT3  = 0x00;
-    
-    // Set clock prescaler to clk/1024
-    TCCR3B |= (1 << CS32) | (1 << CS30);
-    // Set CTC mode 
-    TCCR3B |= (1 << WGM32);
-    // Set counter to 1Hz tick (16MHz / 1024 = 15625)
-    OCR3A = 15625;
-    // Enable Output Compare A Match Interrupt
-    TIMSK3 = (1 << OCIE3A);
+  // 16 MHz clock is used
+  TCCR3A = 0x00;
+  TCCR3B = 0x00;
+  TCNT3  = 0x00;
+  
+  // Set clock prescaler to clk/1024
+  TCCR3B |= (1 << CS32) | (1 << CS30);
+  // Set CTC mode 
+  TCCR3B |= (1 << WGM32);
+  // Set counter to 1Hz tick (16MHz / 1024 = 15625)
+  OCR3A = 15625;
+  // Enable Output Compare A Match Interrupt
+  TIMSK3 = (1 << OCIE3A);
 }
 
 void configTimer4()
 {
-    // 16 MHz clock is used
-    TCCR4A = 0x00;
-    TCCR4B = 0x00;
-    TCNT4  = 0x00;
-    
-    // Set clock prescaler to clk/1024
-    TCCR4B |= (1 << CS42) | (1 << CS40);
-    // Set CTC mode 
-    TCCR4B |= (1 << WGM42);
-    // Set counter to 1Hz tick (16MHz / 1024 = 15625)
-    OCR4A = 15625;
-    // Enable Output Compare A Match Interrupt
-    TIMSK4 = (1 << OCIE4A);
+  //set timer1 interrupt at 1Hz
+  TCCR4A = 0;// set entire TCCR4A register to 0
+  TCCR4B = 0;// same for TCCR1B
+  TCNT4  = 0;//initialize counter value to 0
+  // set compare match register for 1hz increments
+  OCR4A = 15624;// = (16*10^6) / (1*1024) - 1 (must be <65536)
+  // turn on CTC mode
+  TCCR4B |= (1 << WGM12);
+  // Set CS12 and CS10 bits for 1024 prescaler
+  TCCR4B |= (1 << CS12) | (1 << CS10);  
+  // enable timer compare interrupt
+  TIMSK4 |= (1 << OCIE1A);
 }
 
 void setup()
@@ -108,7 +104,6 @@ void loop()
     //Stop Timer 3 Start Timer 4
     TIMSK3 = 0x00;
     sei();
-    choice = 0;
     while (true)
     {
       digitalWrite(buzzer, LOW);
@@ -116,16 +111,12 @@ void loop()
       digitalWrite(green1Pin, LOW);
       digitalWrite(red1Pin, HIGH);
       next = false;
-      startTime = millis();
+      limit = 20;
       while(next == false)
       {
-          limit = 20000;
-          remainder = (limit - (millis() - startTime)) / 1000;
-          if(remainder <= 65535  && remainder >= 0)
-          {
-            twodigit(remainder);
-          }
-          if(remainder <= 3)
+          twodigit(limit);
+          Serial.println("garbage");
+          if(limit <= 3)
           {
             digitalWrite(buzzer, HIGH);
           }
@@ -135,16 +126,12 @@ void loop()
       digitalWrite(green1Pin,HIGH);
       digitalWrite(yellow1Pin, LOW);
       next = false;
-      startTime = millis();
+      limit = 20;
       while(next == false)
       {
-          limit = 20000;
-          remainder = (limit - (millis() - startTime)) / 1000;
-          if(remainder <= 65535 && remainder >= 0)
-          {
-            twodigit(remainder);
-          }
-          if(remainder <= 3)
+          twodigit(limit);
+          Serial.println("garbage");
+          if(limit <= 3)
           {
               digitalWrite(buzzer, HIGH);
           }
@@ -154,16 +141,12 @@ void loop()
       digitalWrite(green1Pin, LOW);
       digitalWrite(yellow1Pin, HIGH);
       next = false;
-      startTime = millis();
+      limit = 6;
       while(next == false)
       {
-          limit = 6000;
-          remainder = (limit - (millis() - startTime)) / 1000;
-          if(remainder <= 65535 && remainder >= 0)
-          {
-            twodigit(remainder);
-          }
-          if(remainder <= 3)
+          twodigit(limit);
+          Serial.println("garbage");
+          if(limit <= 3)
           {
             digitalWrite(buzzer, HIGH);
           }
@@ -203,7 +186,8 @@ ISR(TIMER3_COMPA_vect)
 // Timer 4 ISR
 ISR(TIMER4_COMPA_vect)
 {
-    if((millis() - startTime) >= limit)
+    limit = limit - 1;
+    if(limit == 0)
     {
       next = true;
     }
