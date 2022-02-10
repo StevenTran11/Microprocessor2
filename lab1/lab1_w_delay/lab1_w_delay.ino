@@ -1,9 +1,9 @@
-const int red1Pin = 24; //red1 led attach to
+const int red1Pin = 3; //red1 led attach to
 const int yellow1Pin = 26; //yellow1 led attach to
 const int green1Pin = 28; //green1 led attach to
-const int button = 22;//switch attach to
+const int button = 2;//switch attach to
 bool press = false;
-int buzzer = 30;
+int buzzer = 6;
 int CA_1 = 7;
 int CA_2 = 8;
 int CA_3 = 9;
@@ -61,11 +61,12 @@ void loop()
   {
     while (true)
     {
-      for (int num = 20; num > 2; num--) //display 9-4 and turn on a green led
+      for (byte num = 20; num > 2; num--) //display 9-4 and turn on a green led
       {
          
          digitalWrite(red1Pin, HIGH);
          twodigit(num);
+         
          
       }
 
@@ -119,41 +120,46 @@ void loop()
 
 
 
-void segwrite(int number){
+void segwrite(byte number){
   digitalWrite(STcp, LOW);
   shiftOut(DS, SHcp, LSBFIRST, datArray[number]);
   digitalWrite(STcp, HIGH);
 }
-void onedigit(int which, int value){
+void onedigit(int which, byte value){
   digitalWrite(which, LOW);
   segwrite(value);
-  delay(500);
+  delay(10);
   digitalWrite(which,HIGH);
 }
-void twodigit(int value){
+void twodigit(byte value){
   int digit0=value/10;
-  int digit1=value-(digit0 * 10);
-  
+  int digit1=value-(digit0*10);
+  for(int i=0;i<50;i++){
     onedigit(CA_1,digit0);
-    onedigit(CA_2,digit1);
+    onedigit(CA_2,digit1);}
  
+}
+void onedigitloop(int which){
+  for (byte digit=0;digit<10;digit++){
+    onedigit(which,digit);
+  }
 }
 void onedigit_wbeep(int which, int value){
   digitalWrite(which, LOW);
   segwrite(value);
   digitalWrite(buzzer, HIGH);
-  delay(100);
+  delay(1);
   digitalWrite(buzzer, LOW);
-  delay(100);
-  delay(300);
+  delay(1);
+  delay(8);
   digitalWrite(which,HIGH);
 }  
 void twodigit_wbeep(int value){
   int digit0=value/10;
   int digit1=value-(digit0 * 10);
-  
+  for(int i=0;i<50;i++){
     onedigit_wbeep(CA_1,digit0);
-    onedigit_wbeep(CA_2,digit1);
+    onedigit_wbeep(CA_2,digit1);}
  
 }
 void onedigit_wbeepflash(int which, int value){
@@ -162,7 +168,7 @@ void onedigit_wbeepflash(int which, int value){
   
   digitalWrite(yellow1Pin, HIGH);
   digitalWrite(buzzer, HIGH);
-  delay(100);
+  delay(1);
   digitalWrite(buzzer, LOW);
   delay(100);
   digitalWrite(yellow1Pin, LOW);
