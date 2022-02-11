@@ -20,7 +20,22 @@ int second_digit = 0;
 //display 0,1,2,3,4,5,6,7,8,9
 byte datArray[16] {B11111100, B01100000, B11011010, B11110010, B01100110, B10110110, B10111110, B11100000, B11111110, B11110110, B11101110, B00111110, B10011100, B01111010, B10011110, B10001110};
 
-int limit = 0;
+volatile int limit = 0;
+
+void configTimer2()
+{
+    // 16 MHz clock is used
+    TCCR2A  = 0x00;
+    TCCR2B  = 0x00;
+    TCNT2   = 0x00;
+
+    // Set clock prescaler to clk/1024
+    // Set normal mode (interrupt at MAX)
+    // Frequency = 15625 / 255 = 61.27 Hz
+    TCCR2B  |= (1 << CS22) | (1 << CS20);
+    // Enable Overflow Interrupt
+    TIMSK2  = (1 << TOIE2);
+}   
 
 void configTimer3()
 {
@@ -79,6 +94,8 @@ void setup()
 
   //Clear global interrupt flag
   cli();
+
+  configTimer2();
   
   //Set Timer 3 interrupt at 1 Hz
   //Used for red LED blink after boot before button has been pressed
@@ -114,7 +131,6 @@ void loop()
       limit = 20;
       while(next == false)
       {
-          twodigit(limit);
           Serial.println("garbage");
           if(limit <= 3)
           {
@@ -129,7 +145,6 @@ void loop()
       limit = 20;
       while(next == false)
       {
-          twodigit(limit);
           Serial.println("garbage");
           if(limit <= 3)
           {
@@ -144,7 +159,6 @@ void loop()
       limit = 6;
       while(next == false)
       {
-          twodigit(limit);
           Serial.println("garbage");
           if(limit <= 3)
           {
@@ -161,12 +175,15 @@ void segwrite(int number){
   digitalWrite(STcp, HIGH);
 }
 
-void onedigit(int which, int value){
-  digitalWrite(which, LOW);
-  segwrite(value);
-  delay(10);
-  digitalWrite(which,HIGH);
+// Function to write a one digit number to the 7 segment display
+void onedigit(int which, int value)
+{
+    segwrite(value);
+    digitalWrite(which, LOW);
+    delayMicroseconds(500);
+    digitalWrite(which, HIGH);
 }
+
 
 void twodigit(int value)
 {
@@ -175,6 +192,13 @@ void twodigit(int value)
   
   onedigit(CA_1,digit0);
   onedigit(CA_2,digit1);
+}
+
+// Timer 2 ISR
+// Used to strobe the 7 segment display
+ISR(TIMER2_OVF_vect)
+{
+    twodigit(limit);
 }
 
 // Timer 3 ISR
@@ -186,7 +210,7 @@ ISR(TIMER3_COMPA_vect)
 // Timer 4 ISR
 ISR(TIMER4_COMPA_vect)
 {
-    limit = limit - 1;
+    limit--;
     if(limit == 0)
     {
       next = true;
