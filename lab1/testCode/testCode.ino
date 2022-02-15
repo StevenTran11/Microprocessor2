@@ -1,24 +1,22 @@
-const int red1Pin = 24; //red1 led attach to
+volatile const int red1Pin = 24; //red1 led attach to
 const int yellow1Pin = 26; //yellow1 led attach to
 const int green1Pin = 28; //green1 led attach to
 const int button = 22;//switch attach to
 const int buzzer = 30;
-bool press = false;
-bool next = false;
-int CA_1 = 7;
-int CA_2 = 8;
-int CA_3 = 9;
-int CA_4 = 10;
-int com = 2;
-const int STcp = 12;//Pin connected to ST_CP of 74HC595
-const int SHcp = 11;//Pin connected to SH_CP of 74HC595
-const int DS = 13; //Pin connected to DS of 74HC595
-int count = 0;
-int first_digit = 0;
-int second_digit = 0;
+volatile bool press = false;
+volatile bool next = false;
+volatile int CA_1 = 7;
+volatile int CA_2 = 8;
+volatile int CA_3 = 9;
+volatile int CA_4 = 10;
+volatile int com = 2;
+volatile const int STcp = 12;//Pin connected to ST_CP of 74HC595
+volatile const int SHcp = 11;//Pin connected to SH_CP of 74HC595
+volatile const int DS = 13; //Pin connected to DS of 74HC595
 
 //display 0,1,2,3,4,5,6,7,8,9
-byte datArray[10] {B11111100, B01100000, B11011010, B11110010, B01100110, B10110110, B10111110, B11100000, B11111110, B11110110};
+byte datArray[16] {B11111100, B01100000, B11011010, B11110010, B01100110, B10110110, B10111110, B11100000, B11111110, B11110110, B11101110, B00111110, B10011100, B01111010, B10011110, B10001110};
+
 volatile int limit = 0;
 
 void configTimer2()
@@ -186,8 +184,8 @@ void onedigit(int which, int value)
 
 void twodigit(int value)
 {
-  int digit0=value/10;
-  int digit1=value-(digit0 * 10);
+  int digit0=value/16;
+  int digit1=value-(digit0 * 16);
   
   onedigit(CA_1,digit0);
   onedigit(CA_2,digit1);
@@ -197,7 +195,14 @@ void twodigit(int value)
 // Used to strobe the 7 segment display
 ISR(TIMER2_OVF_vect)
 {
-    twodigit(limit);
+    if (press == true)
+    {
+      twodigit(limit);
+    }
+    else
+    {
+      twodigit(0);
+    }
 }
 
 // Timer 3 ISR
