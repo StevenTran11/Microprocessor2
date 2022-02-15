@@ -18,8 +18,7 @@ int first_digit = 0;
 int second_digit = 0;
 
 //display 0,1,2,3,4,5,6,7,8,9
-byte datArray[16] {B11111100, B01100000, B11011010, B11110010, B01100110, B10110110, B10111110, B11100000, B11111110, B11110110, B11101110, B00111110, B10011100, B01111010, B10011110, B10001110};
-
+byte datArray[10] {B11111100, B01100000, B11011010, B11110010, B01100110, B10110110, B10111110, B11100000, B11111110, B11110110};
 volatile int limit = 0;
 
 void configTimer2()
@@ -187,8 +186,8 @@ void onedigit(int which, int value)
 
 void twodigit(int value)
 {
-  int digit0=value/16;
-  int digit1=value-(digit0 * 16);
+  int digit0=value/10;
+  int digit1=value-(digit0 * 10);
   
   onedigit(CA_1,digit0);
   onedigit(CA_2,digit1);
