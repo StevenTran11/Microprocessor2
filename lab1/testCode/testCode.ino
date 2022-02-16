@@ -1,23 +1,55 @@
+// Lab 1 Code
+
+// Pin Definitions
 volatile const int red1Pin = 24; //red1 led attach to
-const int yellow1Pin = 26; //yellow1 led attach to
+volatile const int yellow1Pin = 26; //yellow1 led attach to
 const int green1Pin = 28; //green1 led attach to
 const int button = 22;//switch attach to
 const int buzzer = 30;
-volatile bool press = false;
-volatile bool next = false;
-volatile int CA_1 = 7;
-volatile int CA_2 = 8;
-volatile int CA_3 = 9;
-volatile int CA_4 = 10;
-volatile int com = 2;
+volatile const int CA_1 = 7;
+volatile const int CA_2 = 8;
+volatile const int CA_3 = 9;
+volatile const int CA_4 = 10;
+volatile const int com = 2;
 volatile const int STcp = 12;//Pin connected to ST_CP of 74HC595
 volatile const int SHcp = 11;//Pin connected to SH_CP of 74HC595
 volatile const int DS = 13; //Pin connected to DS of 74HC595
 
-//display 0,1,2,3,4,5,6,7,8,9
+// State Machine helper variables
+volatile bool press = false;
+volatile bool next = false;
+
+// Seven Segment Display Lookup Table
+//display 0,1,2,3,4,5,6,7,8,9,A,B,C,D,E,F
 byte datArray[16] {B11111100, B01100000, B11011010, B11110010, B01100110, B10110110, B10111110, B11100000, B11111110, B11110110, B11101110, B00111110, B10011100, B01111010, B10011110, B10001110};
 
+// Traffic Light Definition
+typedef enum 
+{
+  Red, 
+  Green, 
+  Yellow
+} light_t;
+volatile light_t lightState = Red;
+
+// Timer counter
 volatile int limit = 0;
+
+// Note! Timer 1 Interrupts are not enabled by default
+void configTimer1()
+{
+  // 16 MHz clock is used
+  TCCR1A = 0x00;
+  TCCR1B = 0x00;
+  TCNT1  = 0x00;
+  
+  // Set clock prescaler to clk/1024
+  TCCR1B |= (1 << CS12) | (1 << CS10);
+  // Set CTC mode 
+  TCCR1B |= (1 << WGM12);
+  // Set counter to 5Hz tick (16MHz / 1024 = 15625 / 5Hz = 3125)
+  OCR1A = 3125;
+}
 
 void configTimer2()
 {
@@ -67,6 +99,29 @@ void configTimer4()
   TIMSK4 |= (1 << OCIE1A);
 }
 
+// Helper function to update the stoplight
+void lightUpdate(light_t state)
+{
+  if (state == Red)
+  {
+    digitalWrite(yellow1Pin, LOW);
+    digitalWrite(green1Pin, LOW);
+    digitalWrite(red1Pin, HIGH);
+  }
+  else if (state == Green)
+  {
+    digitalWrite(yellow1Pin, LOW);
+    digitalWrite(green1Pin, HIGH);
+    digitalWrite(red1Pin, LOW);
+  }
+  else if (state == Yellow)
+  {
+    digitalWrite(yellow1Pin, HIGH);
+    digitalWrite(green1Pin, LOW);
+    digitalWrite(red1Pin, LOW);
+  }
+}
+
 void setup()
 {
   pinMode(com, OUTPUT);
@@ -92,6 +147,7 @@ void setup()
   //Clear global interrupt flag
   cli();
 
+  configTimer1();
   configTimer2();
   
   //Set Timer 3 interrupt at 1 Hz
@@ -121,9 +177,8 @@ void loop()
     while (true)
     {
       digitalWrite(buzzer, LOW);
-      digitalWrite(yellow1Pin, LOW);
-      digitalWrite(green1Pin, LOW);
-      digitalWrite(red1Pin, HIGH);
+      lightState = Red;
+      lightUpdate(lightState);
       next = false;
       limit = 20;
       while(next == false)
@@ -135,9 +190,8 @@ void loop()
           }
       }
       digitalWrite(buzzer, LOW);
-      digitalWrite(red1Pin, LOW);
-      digitalWrite(green1Pin,HIGH);
-      digitalWrite(yellow1Pin, LOW);
+      lightState = Green;
+      lightUpdate(lightState);
       next = false;
       limit = 20;
       while(next == false)
@@ -149,9 +203,8 @@ void loop()
           }
       }
       digitalWrite(buzzer, LOW);
-      digitalWrite(red1Pin, LOW);
-      digitalWrite(green1Pin, LOW);
-      digitalWrite(yellow1Pin, HIGH);
+      lightState = Yellow;
+      lightUpdate(lightState);
       next = false;
       limit = 6;
       while(next == false)
@@ -191,6 +244,16 @@ void twodigit(int value)
   onedigit(CA_2,digit1);
 }
 
+// Timer 1 ISR
+// Used to flash yellow LED at 5Hz
+ISR(TIMER1_COMPA_vect)
+{
+  if (lightState == Yellow)
+  {
+    digitalWrite(yellow1Pin, !digitalRead(yellow1Pin)); 
+  }
+}
+
 // Timer 2 ISR
 // Used to strobe the 7 segment display
 ISR(TIMER2_OVF_vect)
@@ -206,17 +269,32 @@ ISR(TIMER2_OVF_vect)
 }
 
 // Timer 3 ISR
+// Used to flash red LED at start
 ISR(TIMER3_COMPA_vect)
 {
     digitalWrite(red1Pin, !digitalRead(red1Pin));
 }
 
 // Timer 4 ISR
+// 1 second tick
 ISR(TIMER4_COMPA_vect)
 {
     limit--;
     if(limit == 0)
     {
       next = true;
+    }
+
+    // Enable flashing yellow light when time is less than 3
+    if ( (limit <= 3) && (lightState == Yellow) )
+    {
+      // Enable Output Compare A Match Interrupt
+      TIMSK1 = (1 << OCIE1A);
+    }
+    // Otherwise clear the timer1 interrupt
+    else if (limit == 0)
+    {
+      digitalWrite(yellow1Pin, 0);
+      TIMSK1 = 0x00;
     }
 }
