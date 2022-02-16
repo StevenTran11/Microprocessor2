@@ -142,7 +142,7 @@ void loop()
       limit = 20;
       while(next == false)
       {
-          Serial.println("garbage");
+          Serial.println("trash");
           if(limit <= 3)
           {
               digitalWrite(buzzer, HIGH);
@@ -156,7 +156,7 @@ void loop()
       limit = 6;
       while(next == false)
       {
-          Serial.println("garbage");
+          Serial.println("savemepls");
           if(limit <= 3)
           {
             digitalWrite(buzzer, HIGH);
@@ -184,9 +184,8 @@ void onedigit(int which, int value)
 
 void twodigit(int value)
 {
-   int digit0 = (value/10);
-int digit1 = value-(digit0 * 10);
-  
+  int digit0=value/16;
+  int digit1=value-(digit0 * 16);
   
   onedigit(CA_1,digit0);
   onedigit(CA_2,digit1);
@@ -196,14 +195,14 @@ int digit1 = value-(digit0 * 10);
 // Used to strobe the 7 segment display
 ISR(TIMER2_OVF_vect)
 {
-    if (press == true)
-    {
-      twodigit(limit);
-    }
-    else
-    {
-      twodigit(0);
-    }
+  if (press == true)
+  {
+    twodigit(limit);
+  }
+  else
+  {
+    twodigit(0);
+  }
 }
 
 // Timer 3 ISR
