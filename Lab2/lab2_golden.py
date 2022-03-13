@@ -16,6 +16,10 @@ import random
 #serialDevFile = '/dev/cu.usbmodem14201'
 #ser=serial.Serial(serialDevFile, 9600, timeout=0)
 
+serialDevFile = 'COM4'
+ser=serial.Serial(serialDevFile, 115200, timeout=0)
+
+
 delay = 0.1
 
 # Score
@@ -113,22 +117,29 @@ wn.onkey(go_up, "w")
 wn.onkey(go_down, "s")
 wn.onkey(go_left, "a")
 wn.onkey(go_right, "d")
+#modify here
 wn.onkey(shaken,"j")
+
+
 
 # Main game loop
 while True:
     wn.update()
-
-    # TODO: notes by Prof. Luo
-    # you need to add your code to read control information from serial port
-    # then use that information to set head.direction
-    # For example, 
-    # if control_information == 'w':
-    #     head.direction = "up"
-    # elif control_information == 's':
-    #     head.direction = "down"
-    # elif ......
-    #
+    read = ser.readline()
+    control_read = read.decode()
+    controller = control_read.rstrip()
+    if controller == 'w':
+        go_up()
+    elif controller == 's':
+        go_down()
+    elif controller == 'a':
+        go_left()
+    elif controller == 'd':
+        go_right()
+        
+        
+        
+   
 
     # Check for a collision with the border
     if head.xcor()>290 or head.xcor()<-290 or head.ycor()>290 or head.ycor()<-290:
@@ -177,10 +188,10 @@ while True:
 
         # Shorten the delay
             delay -= 0.001
-
+            
         # Increase the score
             score += 10
-
+            ser.write(b'E')
             if score > high_score:
                 high_score = score
         
@@ -206,7 +217,7 @@ while True:
 
         # Increase the score
             score += 20
-
+            ser.write(b'E')
             if score > high_score:
                 high_score = score
         
