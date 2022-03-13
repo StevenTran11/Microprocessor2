@@ -1,7 +1,4 @@
 // Lab 2
-#include <MPU6050_tockn.h>
-#include <Wire.h>
-MPU6050 mpu(Wire);
 const int pinX = A0;    // Joystick X axis
 const int pinY = A1;    // Joystick Y axis
 const int buzzer = 7;  // Buzzer for when an apple is eaten
@@ -53,29 +50,22 @@ void setup()
 {
     // Clear interrupts before config
     cli();
-
     // Configure IO
     pinMode(pinX, INPUT);
     pinMode(pinY, INPUT);
     pinMode(buzzer, OUTPUT);
     digitalWrite(buzzer, LOW);
-
     // Configure timers
     configTimer1();
     configTimer2();
-
     // Configure serial port to 115200 baud
     Serial.begin(115200);
-    Wire.begin();
-    mpu.begin();
-    mpu.calcGyroOffsets(false);
     // Enable global interrupts
     sei();
 }
  
 void loop()
 {
-    mpu.update();
     // Local character variable
     char newDir = 0;
 
