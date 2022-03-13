@@ -1,8 +1,10 @@
 // Lab 2
-
+#include <MPU6050_tockn.h>
+#include <Wire.h>
+MPU6050 mpu(Wire);
 const int pinX = A0;    // Joystick X axis
 const int pinY = A1;    // Joystick Y axis
-const int buzzer = 50;  // Buzzer for when an apple is eaten
+const int buzzer = 7;  // Buzzer for when an apple is eaten
 
 volatile bool joyFlag = false;
 volatile int joyX = 0;
@@ -10,7 +12,6 @@ volatile int joyY = 0;
 
 // Global character variable to keep track of messaging direction
 char currDir = 0;
-
 // Config Timer 1 for 100ms timer
 // Used for strobing the buzzer
 // Note! Timer 1 Interrupts are not enabled by default
@@ -22,7 +23,7 @@ void configTimer1()
   TCCR1A = 0x00;
   TCCR1B = 0x00;
   TCNT1  = 0x00;
-  
+
   // Set clock prescaler to clk/1024
   TCCR1B |= (1 << CS12) | (1 << CS10);
   // Set CTC mode 
@@ -65,13 +66,16 @@ void setup()
 
     // Configure serial port to 115200 baud
     Serial.begin(115200);
-
+    Wire.begin();
+    mpu.begin();
+    mpu.calcGyroOffsets(false);
     // Enable global interrupts
     sei();
 }
  
 void loop()
-{ 
+{
+    mpu.update();
     // Local character variable
     char newDir = 0;
 
@@ -105,12 +109,12 @@ void loop()
             newDir = 's';
         }
         // Up
-        else if ( (joyX > 900) && (joyY < joyX) )
+        else if ( (joyX > 950) && (joyY < joyX) )
         {
             newDir = 'w';
         }
         // Right
-        else if ( (joyY > 900) && (joyY > joyX) )
+        else if ( (joyY > 950) && (joyY > joyX) )
         {
             newDir = 'd';
         }
