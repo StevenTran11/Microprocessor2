@@ -121,10 +121,17 @@ while True:
     wn.update()
     read = ser.readline()
     mpu_read = read.decode()
-    shake = mpu_read.rstrip()
-    if shake == 'j':
+    controller = mpu_read.rstrip()
+    if controller == 'w':
+        go_up()
+    elif controller == 's':
+        go_down()
+    elif controller == 'a':
+        go_left()
+    elif controller == 'd':
+        go_right()
+    elif controller == "j":
         shaken()
-       
         
         
         
