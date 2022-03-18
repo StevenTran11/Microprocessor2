@@ -174,7 +174,7 @@ while True:
         # Hint: refer to the example at Serial-RW/pyserial-test.py
 
         # Move the food to a random spot
-        if food_rd.color=='red':
+        if food_rd.color()==('red','red'):
             x = random.randint(-290, 290)
             y = random.randint(-290, 290)
             food_rd.goto(x,y)
@@ -198,7 +198,7 @@ while True:
         
             pen.clear()
             pen.write("Score: {}  High Score: {}  P/A: {}".format(score, high_score, ppa), align="center", font=("Courier", 24, "normal"))
-        else:
+        elif food_rd.color()==('gold',"gold")::
             
             x = random.randint(-290, 290)
             y = random.randint(-290, 290)
