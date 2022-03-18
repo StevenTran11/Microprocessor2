@@ -198,7 +198,7 @@ while True:
         
             pen.clear()
             pen.write("Score: {}  High Score: {}  P/A: {}".format(score, high_score, ppa), align="center", font=("Courier", 24, "normal"))
-        elif food_rd.color()==('gold',"gold")::
+        elif food_rd.color()==('gold',"gold"):
             
             x = random.randint(-290, 290)
             y = random.randint(-290, 290)
