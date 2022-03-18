@@ -16,7 +16,7 @@ bool golden = false;
 //Buzzer Start Time
 unsigned long start_Buzzer;
 
-// Global character variable to keep track of messaging direction
+// Global character variable to keep track of direction
 char currDir = 0;
 char newDir = 0;
 
