@@ -7,8 +7,10 @@ import serial
 # Note the serial port dev file name
 # need to change based on the particular host machine
 # TODO uncomment the following two lines to initialize serial port
+#serialDevFile = '/dev/cu.usbmodem14201'
+#ser=serial.Serial(serialDevFile, 9600, timeout=0)
 
-serialDevFile = 'COM4'
+serialDevFile = 'COM3'
 ser=serial.Serial(serialDevFile, 9600, timeout=0)
 
 
@@ -42,6 +44,13 @@ food_rd.shape("circle")
 food_rd.color("red")
 food_rd.penup()
 food_rd.goto(0,100)
+
+
+
+
+
+
+
 
 segments = []
 
@@ -89,6 +98,10 @@ def move():
         x = head.xcor()
         head.setx(x + 20)
         
+        
+        
+        
+        
 def shaken():
     food_rd.color("gold")
      
@@ -109,8 +122,6 @@ while True:
     read = ser.readline()
     mpu_read = read.decode()
     controller = mpu_read.rstrip()
-    if controller == 'j':
-        shaken()
     if controller == 'w':
         go_up()
     elif controller == 's':
@@ -119,7 +130,13 @@ while True:
         go_left()
     elif controller == 'd':
         go_right()
-    
+    elif controller == "j":
+        shaken()
+        
+        
+        
+   
+
     # Check for a collision with the border
     if head.xcor()>290 or head.xcor()<-290 or head.ycor()>290 or head.ycor()<-290:
         time.sleep(1)
@@ -168,9 +185,9 @@ while True:
         # Shorten the delay
             delay -= 0.001
             
-        # Increase the score and write to serial.
+        # Increase the score
             score += 10
-            ser.write(b'E')
+            
             if score > high_score:
                 high_score = score
         
