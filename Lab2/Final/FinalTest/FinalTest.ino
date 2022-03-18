@@ -5,14 +5,15 @@ MPU6050 mpu6050(Wire);
 const int pinX = A0;  // Joystick X axis
 const int pinY = A1;  // Joystick Y axis
 const int buzzer = 7; // Buzzer for when an apple is eaten
-
-volatile bool joyFlag = false;
+//Joystick Values
 volatile int joyX = 0;
 volatile int joyY = 0;
+//Acceration Offset of Gyroscope
 double xOffset;
 double yOffset;
-
+//Determine whether to change color to golden
 bool golden = false;
+//Buzzer Start Time
 unsigned long start_Buzzer;
 
 // Global character variable to keep track of messaging direction
@@ -42,7 +43,7 @@ void setup()
   Wire.begin();
   mpu6050.begin();
   mpu6050.calcGyroOffsets(true);
-  //Calculate acceleration offset of mpu6050 to use in shaking algorithm
+  //Calculate acceleration offset of mpu6050
   xOffset = mpu6050.getAccX();
   yOffset = mpu6050.getAccY();
 }
@@ -50,7 +51,7 @@ void setup()
 void loop() 
 {
   mpu6050.update();
-  // Check if an apple has been eaten by the Python script
+  //Check if an apple has been eaten by the Python script
   if (Serial.available() > 0)
   {
     int incomingByte = Serial.read();
@@ -88,7 +89,7 @@ void loop()
   {
     newDir = 'a';
   }
-  //I dont want to add delay but this j is printing multiple times.  Have to fix this part
+  //Print J if not golden and gyroscope is shaking and not tilted
   if(((mpu6050.getAccX() > (xOffset + 1.5)) || (mpu6050.getAccX() < (xOffset - 1.5)) || (mpu6050.getAccY() > (yOffset + 1.5)) || (mpu6050.getAccY() < (yOffset - 1.5))) && mpu6050.getAngleX() < 30 && mpu6050.getAngleX() > -30 && mpu6050.getAngleY() < 30 &&  mpu6050.getAngleY() > -30 && golden == false)
   {
     Serial.println('j');
