@@ -12,7 +12,6 @@ void setup() {
   setupMPU();
 }
 
-
 void loop() {
   char shake = 0;
   recordAccelRegisters();
