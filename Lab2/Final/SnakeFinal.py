@@ -11,7 +11,6 @@ import serial
 serialDevFile = 'COM4'
 ser=serial.Serial(serialDevFile, 9600, timeout=0)
 
-
 delay = 0.1
 
 # Score
@@ -88,11 +87,7 @@ def move():
     if head.direction == "right":
         x = head.xcor()
         head.setx(x + 20)
-        
-        
-        
-        
-        
+     
 def shaken():
     food_rd.color("gold")
      
@@ -104,8 +99,6 @@ wn.onkey(go_left, "a")
 wn.onkey(go_right, "d")
 #modify here
 wn.onkey(shaken,"j")
-
-
 
 # Main game loop
 while True:
@@ -145,7 +138,6 @@ while True:
 
         pen.clear()
         pen.write("Score: {}  High Score: {}  P/A: {}".format(score, high_score, ppa), align="center", font=("Courier", 24, "normal")) 
-
 
     # Check for a collision with the food
     if head.distance(food_rd) < 20:
