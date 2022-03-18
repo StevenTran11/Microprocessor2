@@ -38,7 +38,7 @@ void configTimer1()
   OCR1A = 1562;
 }
 
-// Config Timer 2 for 61Hz interrupt
+// Config Timer 2 for 61Hz interrupt1
 // Used for joystick polling
 void configTimer2()
 {
