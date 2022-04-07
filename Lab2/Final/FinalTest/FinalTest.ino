@@ -11,6 +11,7 @@ volatile int joyY = 0;
 //Acceration Offset of Gyroscope
 double xOffset;
 double yOffset;
+double number = 1;
 //Determine whether to change color to golden
 bool golden = false;
 //Buzzer Start Time
@@ -90,7 +91,7 @@ void loop()
     newDir = 'a';
   }
   //Print J if not golden and gyroscope is shaking and not tilted
-  if(((mpu6050.getAccX() > (xOffset + 1.5)) || (mpu6050.getAccX() < (xOffset - 1.5)) || (mpu6050.getAccY() > (yOffset + 1.5)) || (mpu6050.getAccY() < (yOffset - 1.5))) && mpu6050.getAngleX() < 30 && mpu6050.getAngleX() > -30 && mpu6050.getAngleY() < 30 &&  mpu6050.getAngleY() > -30 && golden == false)
+  if(((mpu6050.getAccX() > (xOffset + number)) || (mpu6050.getAccX() < (xOffset - number)) || (mpu6050.getAccY() > (yOffset + number)) || (mpu6050.getAccY() < (yOffset - number))) && mpu6050.getAngleX() < 30 && mpu6050.getAngleX() > -30 && mpu6050.getAngleY() < 30 &&  mpu6050.getAngleY() > -30 && golden == false)
   {
     Serial.println('j');
     golden = true;
