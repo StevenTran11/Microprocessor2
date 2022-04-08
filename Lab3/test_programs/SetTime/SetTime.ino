@@ -46,6 +46,7 @@ void setup() {
 }
 
 void loop() {
+  Serial.println(RTC.read(tm));
 }
 
 bool getTime(const char *str)
