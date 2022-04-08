@@ -6,6 +6,7 @@
 #include <LiquidCrystal.h>
 
 volatile bool timeFlag = false;     // Flag that marks when to perform a time update
+// LCD module connections (RS, E, D4, D5, D6, D7)
 LiquidCrystal lcd (7, 8, 9, 10, 11, 12);
 
 const char *monthName[12] = {
@@ -88,8 +89,31 @@ void loop()
       } 
       else
       {
-        Serial.println("DS1307 read error!  Please check the circuitry.");
-        Serial.println();
+        if (tm.Second < 59)
+        {
+          tm.Second += 1;
+        }
+        else
+        {
+          tm.Second = 0;
+          if (tm.Minute < 59)
+          {
+            tm.Minute += 1;
+          }
+          else
+          {
+            tm.Minute = 0;
+          
+            if (tm.Hour < 23)
+            {
+              tm.Hour += 1;
+            }
+            else
+            {
+              tm.Hour = 0;
+            }
+          }
+        }
       }
     }
     // Reset the time update flag
