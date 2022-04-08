@@ -61,25 +61,8 @@ void loop()
     // Check if the RTC read was successful
     // If not, manually increment the time until the next read
     // Also check that the DS1307 has been properly initialized and is running
-    if (RTC.read(tm))
-    {
-      lcd.setCursor(0,0);
-      lcd.print("TIME: ");
-      lcd.print(tm.Hour);
-      lcd.print(":");
-      lcd.print(tm.Minute);
-      lcd.print(":");
-      lcd.print(tm.Second); 
-      
-      lcd.setCursor(0,1);
-      lcd.print("DATE: ");
-      lcd.print(monthName[tm.Month]);
-      lcd.print(" ");
-      lcd.print(tm.Day);
-      lcd.print(" ");
-      lcd.print(tmYearToCalendar(tm.Year));
-    }
-    else
+    status = RTC.read(tm);
+    if(!status)
     {
       if (RTC.chipPresent())
       {
@@ -117,6 +100,21 @@ void loop()
       }
     }
     // Reset the time update flag
+    lcd.setCursor(0,0);
+    lcd.print("TIME: ");
+    lcd.print(tm.Hour);
+    lcd.print(":");
+    lcd.print(tm.Minute);
+    lcd.print(":");
+    lcd.print(tm.Second); 
+    
+    lcd.setCursor(0,1);
+    lcd.print("DATE: ");
+    lcd.print(monthName[tm.Month]);
+    lcd.print(" ");
+    lcd.print(tm.Day);
+    lcd.print(" ");
+    lcd.print(tmYearToCalendar(tm.Year));
     timeFlag = false;
   }
 }
