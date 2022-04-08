@@ -106,11 +106,13 @@ void loop()
     lcd.print(":");
     lcd.print(tm.Minute);
     lcd.print(":");
+    if(tm.Second < 10)
+      lcd.print('0');
     lcd.print(tm.Second); 
     
     lcd.setCursor(0,1);
     lcd.print("DATE: ");
-    lcd.print(monthName[tm.Month]);
+    lcd.print(monthName[tm.Month - 1]);
     lcd.print(" ");
     lcd.print(tm.Day);
     lcd.print(" ");
