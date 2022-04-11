@@ -13,7 +13,8 @@ const int in4 = 4;
 // Note: Fan speeds are non-linear - Minimum speed appears to be around 128
 // 128 - 255 will be the valid range
 int fanSpeed = 255;
-int fanDir = 1;
+// Fan Direction Clockwise
+bool fanDirCw = true;
 
 void fanIncreaseSpeed()
 {
@@ -43,6 +44,11 @@ void fanIncreaseSpeed()
             analogWrite(enB, fanSpeed);
             break;
 
+        // Max speed
+        case 255:
+            fanSpeed = 255;
+            break;
+
         // Catch all, reset to 50%
         default:
             fanSpeed = 170;
@@ -54,6 +60,11 @@ void fanDecreaseSpeed()
 {
     switch (fanSpeed)
     {
+        // Off
+        case 0:
+            fanSpeed = 0;
+            break;
+
         // 25% down to 0%
         case 128:
             fanSpeed = 0;
@@ -85,6 +96,59 @@ void fanDecreaseSpeed()
     }
 }
 
+void fanChangeDirection()
+{
+    int i;
+
+    // Change clockwise to counter clockwise
+    if (fanDirCw)
+    {
+        // Need to stop the motor first to be safe
+        for (i = fanSpeed; i > 0; i--)
+        {
+            analogWrite(enB, i);
+            delay(2);
+        }
+
+        // Switch motor directions
+        digitalWrite(in3, LOW);
+        digitalWrite(in4, HIGH);
+        delay(5);
+
+        // Now spool motor back up
+        for (i = 0; i < fanSpeed; i++)
+        {
+            analogWrite(enB, i);
+            delay(2);
+        }
+
+        fanDirCw = false;
+    }
+    else
+    {
+        // Need to stop the motor first to be safe
+        for (i = fanSpeed; i > 0; i--)
+        {
+            analogWrite(enB, i);
+            delay(2);
+        }
+
+        // Switch motor directions
+        digitalWrite(in3, HIGH);
+        digitalWrite(in4, LOW);
+        delay(5);
+
+        // Now spool motor back up
+        for (i = 0; i < fanSpeed; i++)
+        {
+            analogWrite(enB, i);
+            delay(2);
+        }
+
+        fanDirCw = true;
+    }
+}
+
 void setup()
 {
     Serial.begin(115200);
@@ -94,9 +158,9 @@ void setup()
     pinMode(in3, OUTPUT);
     pinMode(in4, OUTPUT);
   
-    // Set motor to clockwise, 50% speed by default
-    digitalWrite(in3, LOW);
-    digitalWrite(in4, HIGH);
+    // Set motor to clockwise, max speed by default
+    digitalWrite(in3, HIGH);
+    digitalWrite(in4, LOW);
     analogWrite(enB, fanSpeed);
 
     // Enable IR receiver
@@ -125,12 +189,16 @@ void loop()
 
             // Can be used to switch fan direction
             case 0x43:
-                Serial.println("Fast forward");
+                Serial.println("Changing fan direction");
+                fanChangeDirection();
+                Serial.println("Fan direction changed");
                 break;
 
             // Can also be used to switch fan direction
             case 0x44:
-                Serial.println("Fast back");
+                Serial.println("Changing fan direction");
+                fanChangeDirection();
+                Serial.println("Fan direction changed");
                 break;
 
             // Catch all - do nothing
@@ -138,9 +206,10 @@ void loop()
               Serial.println("Other");
               break;
         }
+        Serial.println();
 
         // Perform a short delay to "debounce" the input
-        delay(50);
+        delay(100);
 
         IrReceiver.resume();
     }
