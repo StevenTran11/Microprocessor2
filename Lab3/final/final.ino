@@ -25,11 +25,6 @@ int fanSpeed = 255;
 // Fan Direction Clockwise
 bool fanDirCw = true;
 
-const char *monthName[12] = {
-  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-};
-
 void print2digits(int number) 
 {
   if (number >= 0 && number < 10) 
