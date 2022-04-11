@@ -111,6 +111,7 @@ void fanChangeDirection()
         }
 
         // Switch motor directions
+        analogWrite(enB, 0);
         digitalWrite(in3, LOW);
         digitalWrite(in4, HIGH);
         delay(5);
@@ -134,6 +135,7 @@ void fanChangeDirection()
         }
 
         // Switch motor directions
+        analogWrite(enB, 0);
         digitalWrite(in3, HIGH);
         digitalWrite(in4, LOW);
         delay(5);
