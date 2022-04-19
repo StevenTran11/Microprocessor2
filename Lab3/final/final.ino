@@ -284,8 +284,12 @@ void loop()
     // Reset the time update flag
     lcd.setCursor(0,0);
     lcd.print("TIME: ");
+    if(tm.Hour < 10)
+      lcd.print('0');
     lcd.print(tm.Hour);
     lcd.print(":");
+    if(tm.Minute < 10)
+      lcd.print('0');
     lcd.print(tm.Minute);
     lcd.print(":");
     if(tm.Second < 10)
